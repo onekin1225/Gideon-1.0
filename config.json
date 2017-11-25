@@ -1,0 +1,23 @@
+{
+	"bottoken": "",
+	"geniustoken": "",
+	"yttoken": "",
+	
+	"prefix": ".",
+	"owner": "255009837002260482",
+	"gameplaying": "Koen02#5408",
+
+	"modrole": "351736915575308288",
+	"helperrole": "360801460386136065",
+	"muterole": "356457101045923841",
+	"humanrolename": "Human",
+
+	"musicchannelname": "Music",
+
+	"embedcolor": "#2db7ff",
+	"badembedcolor": "#ff0000",
+	"warnembedcolor": "#ff8300",
+	"goodembedcolor": "#00ff37",
+	"blackembedcolor": "000001",
+	"whiteembedcolor": "ffffff"
+}
