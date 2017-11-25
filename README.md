@@ -19,7 +19,7 @@ THESE CAN BE OUTDATED
 * wheel of fortune generator -> http://prntscr.com/hf4qd0
 * minecraft achievement generator -> http://prntscr.com/hf4qqi
 * rain radar (netherlands) -> http://prntscr.com/hf4r6m
-* random cah cards -> http://prntscr.com/hf4rjy\
+* random cah cards -> http://prntscr.com/hf4rjy
 * emojify -> http://prntscr.com/hf4rvd
 * info -> http://prntscr.com/hf4s43
 
