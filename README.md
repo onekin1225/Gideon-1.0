@@ -8,7 +8,7 @@ This bot is made for my own server - you cannot use it as stand alone because of
 
 ## Features
 ```
-THESE CAN BE OUTDATED
+Features from last commit not included
 ```
 #### General
 * help -> http://prntscr.com/hf4nv0 - http://prntscr.com/hf4nzp
