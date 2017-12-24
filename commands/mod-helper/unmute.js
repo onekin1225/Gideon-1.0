@@ -1,6 +1,7 @@
 const { Command } = require('discord.js-commando');
 const config = require('../../config.json');
 const { RichEmbed } = require('discord.js');
+const mutes = require('../../mutes.json');
 
 module.exports = class dmCommand extends Command {
     constructor(client) {
@@ -25,7 +26,9 @@ module.exports = class dmCommand extends Command {
             const { user } = args;
             if (msg.guild.member(user).roles.has(config.muterole)) {
                 msg.guild.member(user).removeRole(config.muterole);
-                msg.say("Gebruiker Unmuted!");
+                delete mutes[args.user];
+                const unmutedEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + msg.author.username, msg.author.avatarURL).setDescription(':white_check_mark: Gebruiker is unmuted!');
+                msg.channel.send({embed:unmutedEmbed});
 
                 const channel = msg.guild.channels.find('name', 'modlog');
                 if (!channel) return;

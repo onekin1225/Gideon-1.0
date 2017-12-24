@@ -6,9 +6,11 @@ const ytdl = require('ytdl-core');
 const YouTube = require('simple-youtube-api');
 var analyrics = require("analyrics");
 analyrics.setToken(config.geniustoken);
-
 const sql = require("sqlite");
 sql.open("./score.sqlite");
+const mutes = require('./mutes.json');
+const fs = require('fs');
+const cleverbot = require("cleverbot-unofficial-api");
 
 const client = new CommandoClient({
     commandPrefix: config.prefix,
@@ -20,6 +22,7 @@ const client = new CommandoClient({
 const youtube = new YouTube(config.yttoken);
 const queue = new Map();
 const PREFIX = ".";
+let cs = null;
 
 client.registry
 	.registerDefaultTypes()
@@ -32,6 +35,36 @@ client.registry
 client.on('ready', () => {
     console.log(`Bot is gestart, met ${client.users.size} gebruikers, in ${client.channels.size} channels van ${client.guilds.size} guilds.`);
     client.user.setPresence({ game: { name: config.gameplaying, type: 0 } });
+
+    setInterval(() => {
+      for (let i in mutes) {
+        let time = mutes[i].time;
+        let guildId = mutes[i].guild;
+        let guild = client.guilds.get(guildId);
+        let member = guild.members.get(i);
+        let mutedRole = config.muterole;
+        if (!mutedRole) continue;
+        if (!guild) continue;
+
+        if (Date.now() > time) {
+          member.removeRole(mutedRole);
+          delete mutes[i];
+          fs.writeFile("./mutes.json", JSON.stringify(mutes), err => {
+            if (err) throw err;
+
+            const channel = client.guilds.find('id', '351735832727781376').channels.find('name', 'modlog');
+            if (!channel) return;
+            const embed = new RichEmbed()
+            .setAuthor('Gebruiker unmuted', member.user.avatarURL)
+            .setColor(config.goodembedcolor)
+            .setDescription(`**${member.user.toString()}** is unmuted!`)
+            .setTimestamp()
+            .setFooter(`${member.user.id} | ${member.user.tag}`);
+            channel.send({ embed });
+          });
+        }
+      }
+    }, 5000);
 });
 
 client.on('channelCreate', channel => {
@@ -85,13 +118,14 @@ client.on("message", async message => {
 		}
 	}
 	if( !message.member.roles.has(config.owner) ) {
-    if (/cancer|kanker|ebola|niger|nigger|niggah|nigah|aids|nibba|nibbas/g.test(message.content.toLowerCase)) {
+    if (/cancer|kanker|ebola|niger|nigger|nigga|nigah|neger|aids|nibba/g.test(message.content.toLowerCase())) {
       console.log('bad word filtered');
       message.delete();
       message.reply("GEEN RARE WOORDEN ZEGGEN!");
       return;
     }
   }
+
 //leveling sytem part
 
   // if (message.content.toLowerCase().startsWith(PREFIX + "level")) {
@@ -131,11 +165,27 @@ client.on("message", async message => {
 
 //music part
   if (!message.content.startsWith(PREFIX)) return;
-  if (message.channel.id != '383939785896493057') return;
   const args = message.content.split(' ');
-	const searchString = args.slice(1).join(' ');
-	const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
+  const searchString = args.slice(1).join(' ');
+  const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
   const serverQueue = queue.get(message.guild.id);
+  
+
+if (message.content.toLowerCase().startsWith(PREFIX + "c")) {
+    if (searchString == "") return message.channel.send('Je hebt geen argumenten gegeven'); 
+    if (searchString == "reset") {
+      if (cs === null) return message.channel.send('Onze conversatie was al gereset!'); 
+      cs = null;
+      return message.channel.send('Onze conversatie is gereset!'); 
+    }
+    cleverbot(config.cbtoken, searchString, cs).then(response => {
+        message.channel.send(response.output);
+        cs = response.cs;
+    }).catch(console.error);
+  }
+
+
+  if (message.channel.id != '383939785896493057') return;
 
   //play command
   if (message.content.toLowerCase().startsWith(PREFIX + "play")) {
@@ -152,7 +202,7 @@ client.on("message", async message => {
         const speakPermsEmbed = new RichEmbed().setColor(config.badembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(`:x: Ik heb geen permissies om te spreken!`);        
         return message.channel.send({ embed:speakPermsEmbed });
       }
-    if (url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/ || message.member.roles.has(config.owner))) {
+      if (url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/ || message.member.roles.has(config.owner))) {
       const playlist = await youtube.getPlaylist(url);
       const videos = await playlist.getVideos();
       for (const video of Object.values(videos)) {
@@ -307,7 +357,7 @@ client.on("message", async message => {
     analyrics.getSong(serverQueue.songs[0].ss, function(song) {
       try {
         if (song.lyrics.length <= 2048) {
-          const lyricsEmbed = new RichEmbed().setTitle(song.title).setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(song.lyrics); 
+          const lyricsEmbed = new RichEmbed().setTitle(song.title).setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(song.lyrics);
           return message.channel.send({ embed:lyricsEmbed });
         } else if (song.lyrics.length > 2048 && song.lyrics.length < 4096) {
           var cutLyrics1 = song.lyrics.substr(0, 2048);
@@ -316,7 +366,17 @@ client.on("message", async message => {
           message.channel.send({ embed:lyrics1Embed });
           const lyrics2Embed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(cutLyrics2); 
           return message.channel.send({ embed:lyrics2Embed });
-        } else if (song.lyrics.length > 4096) {
+        } else if (song.lyrics.length > 4096 && song.lyrics.length < 6144) {
+          var cuttLyrics1 = song.lyrics.substr(0, 2048);
+          var cuttLyrics2 = song.lyrics.substr(2048, 4096);
+          var cuttLyrics3 = song.lyrics.substr(4096);
+          const lyricss1Embed = new RichEmbed().setTitle(song.title).setColor(config.goodembedcolor).setDescription(cuttLyrics1); 
+          message.channel.send({ embed:lyricss1Embed });
+          const lyricss2Embed = new RichEmbed().setColor(config.goodembedcolor).setDescription(cuttLyrics2); 
+          message.channel.send({ embed:lyricss2Embed });
+          const lyricss3Embed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(cuttLyrics3); 
+          return message.channel.send({ embed:lyricss3Embed });
+        } else if (song.lyrics.length > 6144) {
           const tooLongEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(`:x: Lyrics is te lang! Kan niet verzenden.`); 
           return message.channel.send({ embed:tooLongEmbed });
         }
@@ -333,7 +393,6 @@ client.on("message", async message => {
     message.delete();
     const lengteEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).addField(`:white_check_mark: De lengtes zijn:`, `Dit liedje: **${serverQueue.songs[0].duration.minutes}:${serverQueue.songs[0].duration.seconds}**\nHele queue: **${serverQueue.totalmin} minuten en ${serverQueue.totalsec} seconden**`);    
     message.channel.send({ embed:lengteEmbed });
-    console.log(serverQueue.songs);
   }
   //end lengte command
   //loop command
@@ -371,8 +430,41 @@ client.on("message", async message => {
     message.channel.send({ embed:successEmbed });
   }
   //end remove command
+  //shuffle command
+  if (message.content.toLowerCase().startsWith(PREFIX + "shuffle")) {
+    message.delete();
+    const voiceChannelEmbed = new RichEmbed().setColor(config.badembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(`:x:  Je zit niet in het muziekkanaal!`);
+    if (!message.member.voiceChannel) return message.channel.send({ embed:voiceChannelEmbed });
+    const emptyQueueEmbed = new RichEmbed().setColor(config.badembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(`:x: De queue is leeg!`);    
+    if (!serverQueue) return message.channel.send({ embed:emptyQueueEmbed });
+    try {
+      var currSong = serverQueue.songs[0];
+      var shuffleQueue = serverQueue.songs;
+      shuffleQueue.shift();
+      serverQueue.songs = shuffle(shuffleQueue);
+      serverQueue.songs.unshift(currSong);
+      const shuffleEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).setDescription(`:twisted_rightwards_arrows: De queue is geshuffled!`);    
+      message.channel.send({ embed:shuffleEmbed });
+    } catch (err){
+      console.log(err);
+    }
+  }
+  //end shuffle command
+
 
 });
+
+function shuffle(arra1) {
+  var ctr = arra1.length, temp, index;
+  while (ctr > 0) {
+      index = Math.floor(Math.random() * ctr);
+      ctr--;
+      temp = arra1[ctr];
+      arra1[ctr] = arra1[index];
+      arra1[index] = temp;
+  }
+  return arra1;
+}
 
 async function handleVideo(video, message, voiceChannel, searchString, playlist = false) {
   const serverQueue = queue.get(message.guild.id);

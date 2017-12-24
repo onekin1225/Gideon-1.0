@@ -26,43 +26,47 @@ module.exports = class dmCommand extends Command {
         });
     }
 
-    run(msg, args) {
-        const { user, amount } = args;
-        if(msg.member.roles.has(config.modrole)) {
-            msg.delete();
-            msg.channel.fetchMessages({
-            limit: amount,
-            }).then((messages) => {
-            if (user) {
-            const filterBy = user ? user.id : this.client.user.id;
-            messages = messages.filter(m => m.author.id === filterBy).array().slice(0, amount);
+    async run(msg, args) {
+        msg.delete();
+
+
+        setTimeout(() => {
+            if(msg.member.roles.has(config.modrole)) {
+                msg.channel.fetchMessages({
+                limit: args.amount,
+                }).then((messages) => {
+                if (args.user) {
+                const filterBy = args.user ? args.user.id : this.client.user.id;
+                messages = messages.filter(m => m.author.id === filterBy).array().slice(0, args.amount);
+                }
+                msg.channel.bulkDelete(messages).catch(error => console.log(error.stack));
+                });
+    
+                const channel = msg.guild.channels.find('name', 'modlog');
+                if (!channel) return;
+    
+                if (args.user) {
+                    const embed = new RichEmbed()
+                    .setAuthor('Berichten purged', msg.author.avatarURL)
+                    .setColor(config.goodembedcolor)
+                    .setDescription(`**${args.amount}** berichten van ${args.user} gepurged door ${msg.author.toString()}`)
+                    .setTimestamp()
+                    .setFooter(`${args.user.id} | ${args.user.tag}`);
+                    channel.send({ embed });
+                } else {
+                    const embed = new RichEmbed()
+                    .setAuthor('Berichten purged', msg.author.avatarURL)
+                    .setColor(config.goodembedcolor)
+                    .setDescription(`**${args.amount}** berichten gepurged door ${msg.author.toString()}`)
+                    .setTimestamp()
+                    .setFooter(`${msg.author.id} | ${msg.author.tag}`);
+                    channel.send({ embed });
+                }
+                
+    
+                console.log(`Purge command gebruikt, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb Geheugen`);
             }
-            msg.channel.bulkDelete(messages).catch(error => console.log(error.stack));
-            });
+        }, 1000);
 
-            const channel = msg.guild.channels.find('name', 'modlog');
-            if (!channel) return;
-
-            if (user) {
-                const embed = new RichEmbed()
-                .setAuthor('Berichten purged', user.avatarURL)
-                .setColor(config.goodembedcolor)
-                .setDescription(`**${amount}** berichten gepurged van ${user} door ${msg.author.toString()}`)
-                .setTimestamp()
-                .setFooter(`${msg.author.id} | ${msg.author.tag}`);
-                channel.send({ embed });
-            } else {
-                const embed = new RichEmbed()
-                .setAuthor('Berichten purged', user.avatarURL)
-                .setColor(config.goodembedcolor)
-                .setDescription(`**${amount}** berichten gepurged door ${msg.author.toString()}`)
-                .setTimestamp()
-                .setFooter(`${msg.author.id} | ${msg.author.tag}`);
-                channel.send({ embed });
-            }
-            
-
-            console.log(`Purge command gebruikt, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb Geheugen`);
-        }
     }
 };

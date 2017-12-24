@@ -14,7 +14,6 @@ module.exports = class helpCommand extends Command {
             examples: ['info']
         });
     }
-
     run(msg) {
       msg.channel.startTyping();
       let user = msg.author;
