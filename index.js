@@ -10,7 +10,10 @@ const sql = require("sqlite");
 sql.open("./score.sqlite");
 const mutes = require('./mutes.json');
 const fs = require('fs');
-const cleverbot = require("cleverbot-unofficial-api");
+
+
+
+
 
 const client = new CommandoClient({
     commandPrefix: config.prefix,
@@ -22,7 +25,6 @@ const client = new CommandoClient({
 const youtube = new YouTube(config.yttoken);
 const queue = new Map();
 const PREFIX = ".";
-let cs = null;
 
 client.registry
 	.registerDefaultTypes()
@@ -169,22 +171,6 @@ client.on("message", async message => {
   const searchString = args.slice(1).join(' ');
   const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
   const serverQueue = queue.get(message.guild.id);
-  
-
-if (message.content.toLowerCase().startsWith(PREFIX + "c")) {
-    if (searchString == "") return message.channel.send('Je hebt geen argumenten gegeven'); 
-    if (searchString == "reset") {
-      if (cs === null) return message.channel.send('Onze conversatie was al gereset!'); 
-      cs = null;
-      return message.channel.send('Onze conversatie is gereset!'); 
-    }
-    cleverbot(config.cbtoken, searchString, cs).then(response => {
-        message.channel.send(response.output);
-        cs = response.cs;
-    }).catch(console.error);
-  }
-
-
   if (message.channel.id != '383939785896493057') return;
 
   //play command
@@ -391,7 +377,11 @@ if (message.content.toLowerCase().startsWith(PREFIX + "c")) {
   //lengte command
   if (message.content.toLowerCase().startsWith(PREFIX + "length")) {
     message.delete();
-    const lengteEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).addField(`:white_check_mark: De lengtes zijn:`, `Dit liedje: **${serverQueue.songs[0].duration.minutes}:${serverQueue.songs[0].duration.seconds}**\nHele queue: **${serverQueue.totalmin} minuten en ${serverQueue.totalsec} seconden**`);    
+
+    var modifiedsec = serverQueue.songs[0].duration.seconds;
+    if (`${queue.get("351735832727781376").songs[0].duration.seconds}`.length === 1) modifiedsec = "0" + serverQueue.songs[0].duration.seconds;
+
+    const lengteEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).addField(`:white_check_mark: De lengtes zijn:`, `Dit liedje: **${serverQueue.songs[0].duration.minutes}:${modifiedsec}**\nHele queue: **${serverQueue.totalmin} minuten en ${serverQueue.totalsec} seconden**`);    
     message.channel.send({ embed:lengteEmbed });
   }
   //end lengte command
@@ -547,5 +537,59 @@ function play(guild, song) {
   const addedToQueueEmbed = new RichEmbed().setColor(config.embedcolor).addField(`:notes: Nummer is nu aan het spelen:`, `${song.title}`);
   return serverQueue.textChannel.send({ embed:addedToQueueEmbed});
 }
+
+
+//webserver
+var swig  = require('swig');
+const express = require('express');
+const app = express();
+
+app.use(express.static(path.join(__dirname + '/web')));
+
+app.get('/', function(req, res) {
+
+  var nowplaying = "Nothing is playing!";
+  if (queue.get("351735832727781376")) nowplaying = queue.get("351735832727781376").songs[0].title;
+  var playing = true;
+  var nowsongs = [
+    {title: "De queue is leeg!"}
+  ];
+  if (queue.get("351735832727781376")) {
+    nowsongs = queue.get("351735832727781376").songs.slice(0, 16);
+  } else {
+    playing = false;
+  }
+
+  var thismin = null;
+  var thissec = null;
+  var allmin = null;
+  var allsec = null;
+  if (playing) {
+    var modifiedsec = queue.get("351735832727781376").songs[0].duration.seconds;
+    if (`${queue.get("351735832727781376").songs[0].duration.seconds}`.length === 1) modifiedsec = "0" + queue.get("351735832727781376").songs[0].duration.seconds;
+    thismin = queue.get("351735832727781376").songs[0].duration.minutes;
+    thissec = modifiedsec;
+
+    allmin = queue.get("351735832727781376").totalmin;
+    allsec = queue.get("351735832727781376").totalsec;
+  }
+
+
+
+  var cardfile = swig.compileFile(__dirname + '/web/webpanel.html'),
+  renderedHtml = cardfile({
+    np: nowplaying,
+    sounds: nowsongs,
+    playing: playing,
+    thismin: thismin,
+    thissec: thissec,
+    allmin: allmin,
+    allsec: allsec
+  });
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end(renderedHtml);
+});
+
+app.listen(4000, () => console.log('Gideon Webpanel listening on port 4000!'));
 
 client.login(config.bottoken);

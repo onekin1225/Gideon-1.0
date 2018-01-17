@@ -66,7 +66,13 @@ module.exports = class dmCommand extends Command {
 
                     fs.writeFile("../../mutes.json", JSON.stringify(mutes), err => {
                         if (err) throw err;
-                        const timemutedEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + msg.author.username, msg.author.avatarURL).setDescription(`:white_check_mark: Gebruiker is muted voor ${args.time} minuten!`);
+                        let minormins = null;
+                        if (args.time === 1) {
+                            minormins = "minuut";
+                        } else {
+                            minormins = "minuten";
+                        }
+                        const timemutedEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + msg.author.username, msg.author.avatarURL).setDescription(`:white_check_mark: Gebruiker is muted voor ${args.time} ${minormins}!`);
                         msg.channel.send({embed:timemutedEmbed});
 
                         const channel = msg.guild.channels.find('name', 'modlog');
@@ -74,7 +80,7 @@ module.exports = class dmCommand extends Command {
                         const embed = new RichEmbed()
                         .setAuthor('Gebruiker muted', user.avatarURL)
                         .setColor(config.goodembedcolor)
-                        .setDescription(`**${user.toString()}** is muted voor ${args.time} minuten!`)
+                        .setDescription(`**${user.toString()}** is muted voor ${args.time} ${minormins}!`)
                         .setTimestamp()
                         .setFooter(`${user.id} | ${user.tag}`);
                         channel.send({ embed });

@@ -1,0 +1,36 @@
+.panellist {
+    margin: 0px;
+    list-style-type: none;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top: 0;
+    padding-left: 2em;
+}
+.number {
+    list-style-type: decimal !important;
+}
+.nomarg {
+    margin: 0px;
+}
+.padding {
+  padding: 5px;
+}
+/* List styling */
+.featureList, .featureList ul {
+    margin-top: 0;
+    padding-left: 2em;
+    list-style-type: none;
+  }
+  .featureList li:before {
+    position: absolute;
+    margin-left: -1.3em;
+    font-weight: bold;
+  }
+  .featureList li.tick:before {
+    content: "\2713";
+    color: darkgreen;
+  }
+  .featureList li.cross:before {
+    content: "\2717";
+    color: #35C1FF;
+  }
