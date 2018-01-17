@@ -1,6 +1,6 @@
 # Gideon
 ## Info
-This bot is made for my own server - you cannot use it as stand alone because of hardcoded stuff. Neither is this multi guild
+This bot is made for my own server - you cannot use it as stand alone!
 
 *Made in javascript with Discord.JS*
 
@@ -8,49 +8,46 @@ This bot is made for my own server - you cannot use it as stand alone because of
 
 ## Features
 ```
-Features from last commit not included
+Feature list is updated for the version 1.5
 ```
 #### General
-* help -> http://prntscr.com/hf4nv0 - http://prntscr.com/hf4nzp
-* ping -> http://prntscr.com/hf4mg8
-* 8ball -> http://prntscr.com/hf4oyj
-* dice -> http://prntscr.com/hf4ped
-* heads or tails -> http://prntscr.com/hf4pqk
-* wheel of fortune generator -> http://prntscr.com/hf4qd0
-* minecraft achievement generator -> http://prntscr.com/hf4qqi
-* rain radar (netherlands) -> http://prntscr.com/hf4r6m
-* random cah cards -> http://prntscr.com/hf4rjy
-* emojify -> http://prntscr.com/hf4rvd
-* info -> http://prntscr.com/hf4s43
-
-#### Math
-* sum -> http://prntscr.com/hf4so8
-* subtract -> http://prntscr.com/hf4t0q
-* devide -> http://prntscr.com/hf4t7o
-* multiply -> http://prntscr.com/hf4tu4
+* help -> https://i.koen02.nl/G1xXi6.png - https://i.koen02.nl/lLJZDz.png
+* ping -> https://i.koen02.nl/23HcAY.png
+* 8ball -> https://i.koen02.nl/m0aHCr.png
+* dice -> https://i.koen02.nl/XDBQNG.png
+* heads or tails -> https://i.koen02.nl/CnDBiF.png
+* wheel of fortune generator -> https://i.koen02.nl/gjbe9h.jpg
+* minecraft achievement generator -> https://i.koen02.nl/vSFtB5.png
+* rain radar (netherlands) -> https://i.koen02.nl/UAl04y.jpg
+* weather -> https://i.koen02.nl/pBnDK8.png
+* random cah cards -> https://i.koen02.nl/qYF4Iy.png - https://i.koen02.nl/ur0XOq.png
+* emojify -> https://i.koen02.nl/an2Ezd.png
+* info -> https://i.koen02.nl/gG9DbN.png
+* urban dictionary -> https://i.koen02.nl/DIvht8.png
+* calculator -> https://i.koen02.nl/36bQlH.png
 
 #### Music
-* play -> http://prntscr.com/hf5jtc
-* now playing -> http://prntscr.com/hf5k3j
-* queue -> http://prntscr.com/hf5k6t
-* pause -> http://prntscr.com/hf5k9q
-* resume -> http://prntscr.com/hf5kc5
-* volume -> http://prntscr.com/hf5kfv
-* skip -> http://prntscr.com/hf5kjj
-* clear/stop -> http://prntscr.com/hf5l8q
-* lyrics -> http://prntscr.com/hf5kpn
-* remove -> http://prntscr.com/hf5ku2
-* length -> http://prntscr.com/hf5l1a
-* loop -> http://prntscr.com/hf5l3u
+* play -> https://i.koen02.nl/4CQuml.png
+* now playing -> https://i.koen02.nl/MbhNCu.png
+* queue -> https://i.koen02.nl/uwWbKv.png
+* pause -> https://i.koen02.nl/D1nbq8.png
+* resume -> https://i.koen02.nl/5ISihU.png
+* volume -> https://i.koen02.nl/IqbWOA.png
+* skip -> https://i.koen02.nl/GPVB8w.png
+* clear/stop -> https://i.koen02.nl/L97IgA.png
+* lyrics -> https://i.koen02.nl/i7dHab.png
+* remove -> https://i.koen02.nl/w5IlZf.png
+* length -> https://i.koen02.nl/APErDm.png
+* loop -> https://i.koen02.nl/D4CuyN.png
 
 #### Helper / Mod / Owner
-* mute -> http://prntscr.com/hf4ype
-* unmute -> http://prntscr.com/hf4ysg
-* purge -> http://prntscr.com/hf4yey
-* kick -> http://prntscr.com/hf4xj6
-* ban -> http://prntscr.com/hf4xti
+* mute -> https://i.koen02.nl/Cd2HIX.png
+* unmute -> https://i.koen02.nl/5Bif2A.png
+* purge -> https://i.koen02.nl/VWymdJ.png
+* kick -> https://i.koen02.nl/7HmTtJ.png
+* ban -> https://i.koen02.nl/01rpXm.png
 
 #### Other
-* Blacklisted words
-* Modlog for mod commands
-* (WIP) Leveling system
+* Webpanel on http://panel.koen02.nl:4000/ - https://i.koen02.nl/nKhePT.jpg
+* Blacklisted words https://i.koen02.nl/K53wlm.png
+* Modlog for mod commands https://i.koen02.nl/72qPYZ.png - https://i.koen02.nl/z38wut.png
