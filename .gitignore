@@ -1,1 +1,4 @@
 node_modules
+score.sqlite
+start.txt
+.eslintrc.json
