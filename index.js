@@ -415,7 +415,18 @@ client.on("message", async message => {
     if (/^\d+$/.test(searchString) === false) return message.channel.send({ embed:noNumberEmbed });
     if (searchString <= 0) return message.channel.send({ embed:noNumberEmbed });
     if (searchString >= serverQueue.songs.length) return message.channel.send({ embed:noNumberEmbed });
+
+    var rsong = serverQueue.songs[searchString];
+    if (serverQueue.totalsec - rsong.duration.seconds < 0) {
+      serverQueue.totalmin = serverQueue.totalmin - rsong.duration.minutes - 1;
+      serverQueue.totalsec = serverQueue.totalsec - rsong.duration.seconds + 60;
+    } else {
+      serverQueue.totalmin = serverQueue.totalmin - rsong.duration.minutes;
+      serverQueue.totalsec = serverQueue.totalsec - rsong.duration.seconds;
+    }
+
     serverQueue.songs.splice(searchString, 1);
+
     const successEmbed = new RichEmbed().setColor(config.goodembedcolor).setFooter('Aangevraagd door: ' + message.author.username, message.author.avatarURL).addField(`:white_check_mark: Nummer uit de queue gehaalt:`, `${searchString}`);        
     message.channel.send({ embed:successEmbed });
   }
