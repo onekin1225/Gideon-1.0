@@ -22,6 +22,10 @@ module.exports = class dmCommand extends Command {
         });
     }
 
+    hasPermission(msg) {
+        return msg.author.id == config.owner;
+    }
+
     async run(msg, args) {
         if(msg.author.id !== config.owner) return;
         msg.delete();

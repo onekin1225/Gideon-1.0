@@ -34,3 +34,17 @@
     content: "\2717";
     color: #35C1FF;
   }
+  .vermid {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+  }
+  .vermiddiv {
+    min-height: 50px;
+    line-height: 50px;
+    text-align: center;
+  }
+  .profrank {
+    margin-right: 10px;
+    margin-left: 10px;
+  }

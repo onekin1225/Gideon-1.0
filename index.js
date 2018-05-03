@@ -11,10 +11,6 @@ sql.open("./score.sqlite");
 const mutes = require('./mutes.json');
 const fs = require('fs');
 
-
-
-
-
 const client = new CommandoClient({
     commandPrefix: config.prefix,
     unknownCommandResponse: false,
@@ -24,6 +20,10 @@ const client = new CommandoClient({
 
 const youtube = new YouTube(config.yttoken);
 const queue = new Map();
+let lastMessageContent;
+let lastMessageAuthor;
+let floodtimer = [];
+let delByBot = [];
 const PREFIX = ".";
 
 client.registry
@@ -37,6 +37,12 @@ client.registry
 client.on('ready', () => {
     console.log(`Bot is gestart, met ${client.users.size} gebruikers, in ${client.channels.size} channels van ${client.guilds.size} guilds.`);
     client.user.setPresence({ game: { name: config.gameplaying, type: 0 } });
+
+    sql.get(`SELECT * FROM scores`).catch(() => {
+      sql.run("CREATE TABLE IF NOT EXISTS scores (userId TEXT, XP INTEGER, level INTEGER, total INTEGER)").then(e => {
+        console.error("Table created for first time. Please restart the bot. " + e);
+      });
+    });
 
     setInterval(() => {
       for (let i in mutes) {
@@ -102,9 +108,25 @@ client.on('guildMemberRemove', member => {
   channel.send({ embed });
 });
 
+client.on("messageUpdate", (oldMessage, newMessage) => {
+  if (oldMessage.channel.id == '412984673774338068') {
+    if (oldMessage.content == newMessage.content) return;
+    oldMessage.member.addRole(config.countmuterole);
+    oldMessage.member.send("Ik heb je (tijdelijk) uit #count verwijderd, messages editen verstoort de rij.");
+  }
+});
+client.on("messageDelete", message => {
+  if (message.channel.id == '412984673774338068') {
+    if (delByBot.indexOf(message.id) > -1) return;
+    message.member.addRole(config.countmuterole);
+    message.member.send("Ik heb je (tijdelijk) uit #count verwijderd, messages verwijderen verstoort de rij.");
+  }
+});
+
 client.on("message", async message => {
 //scheldwoorden filter
-	if (message.author.equals(client.user)) return;
+  if (message.author.equals(client.user)) return;
+  if (message.channel.type === `dm`) return;
 	if( !message.member.roles.has(config.modrole) || !message.member.roles.has(config.helperrole) ) {
 		if (message.content.includes("@everyone")) {
 			console.log('tag filtered');
@@ -120,7 +142,7 @@ client.on("message", async message => {
 		}
 	}
 	if( !message.member.roles.has(config.owner) ) {
-    if (/cancer|kanker|ebola|niger|nigger|nigga|nigah|neger|aids|nibba/g.test(message.content.toLowerCase())) {
+    if (/cancer|kanker|ebola|niger|nigger|nigga|nigah|neger|aids|eboia|nlgga|nlga|nlgger|nlgah/g.test(message.content.toLowerCase())) {
       console.log('bad word filtered');
       message.delete();
       message.reply("GEEN RARE WOORDEN ZEGGEN!");
@@ -128,40 +150,78 @@ client.on("message", async message => {
     }
   }
 
-//leveling sytem part
+//count minigame part
+  if (message.channel.id == '412984673774338068') {
+    if (lastMessageContent) {
+      if(!isFinite(message.content)) {
+        delByBot.push(message.id);
+        return message.delete();
+      }
+      if(parseInt(message.content) != parseInt(lastMessageContent) + 1) {
+        delByBot.push(message.id);
+        return message.delete();
+      }
+      if(lastMessageAuthor == message.author.id) {
+        delByBot.push(message.id);
+        return message.delete();
+      }
+    }
+    lastMessageContent = message.content;
+    lastMessageAuthor = message.author.id;
+    return;
+  }
 
-  // if (message.content.toLowerCase().startsWith(PREFIX + "level")) {
-  //   sql.get(`SELECT * FROM scores WHERE userId ="${message.author.id}"`).then(row => {
-  //     if (!row) return message.reply("Je level is: **0**");
-  //     message.channel.send(`Je level is: **${row.level}**!`);
-  //   });
-  //   return;
-  // }
-  // if (message.content.toLowerCase().startsWith(PREFIX + "points")) {
-  //   sql.get(`SELECT * FROM scores WHERE userId ="${message.author.id}"`).then(row => {
-  //     if (!row) return message.reply("sadly you do not have any points yet!");
-  //     message.channel.send(`Je hebt **${row.points}** punten!`);
-  //   });
-  //   return;
-  // }
-  // sql.get(`SELECT * FROM scores WHERE userId ="${message.author.id}"`).then(row => {
-  //   if (!row) {
-  //     sql.run("INSERT INTO scores (userId, points, level) VALUES (?, ?, ?)", [message.author.id, 1, 0]);
-  //   } else {
-  //     let curLevel = Math.floor(0.5 * Math.sqrt(row.points + 1));
-  //     if (curLevel > row.level) {
-  //       row.level = curLevel;
-  //       sql.run(`UPDATE scores SET points = ${row.points + 1}, level = ${row.level} WHERE userId = ${message.author.id}`);
-  //       message.reply(`Je bent een level omhoog! Je level is nu **${curLevel}**!`);
-  //     }
-  //     sql.run(`UPDATE scores SET points = ${row.points + 1} WHERE userId = ${message.author.id}`);
-  //   }
-  // }).catch(() => {
-  //   console.error;
-  //   sql.run("CREATE TABLE IF NOT EXISTS scores (userId TEXT, points INTEGER, level INTEGER)").then(() => {
-  //     sql.run("INSERT INTO scores (userId, points, level) VALUES (?, ?, ?)", [message.author.id, 1, 0]);
-  //   });
-  // });
+
+// level system
+  if (message.author.bot) return;
+  if (message.content.toLowerCase() == (PREFIX + "rank")) {
+    sql.get(`SELECT * FROM scores WHERE userId ="${message.author.id}"`).then(row => {
+      if (!row) return message.reply("Je level is: **0**");
+
+
+      sql.get(`SELECT count(*) FROM scores`).then(count => {
+        sql.all(`SELECT * FROM scores ORDER BY Level DESC, XP DESC`).then(rank => {
+          var curRank = rank.map(function(e) { return e.userId; }).indexOf(message.author.id) + 1;
+          var allUsers = count[Object.keys(count)[0]];
+          const rankEmbed = new RichEmbed()
+            .setAuthor(message.author.username, message.author.avatarURL)
+            .setColor(config.embedcolor)
+            .addField(`Rank`, `${curRank}/${allUsers}`, true)
+            .addField(`Level`, `${row.level}`, true)
+            .addField(`XP`, `${row.XP}/${(5 * Math.pow(row.level, 2) + 50 * row.level + 100)} (tot. ${row.total})`, true);
+          message.channel.send({ embed:rankEmbed });
+        });
+      });
+    });
+    return;
+  }
+  sql.get(`SELECT * FROM scores WHERE userId ="${message.author.id}"`).then(row => {
+    if (!row) {
+      sql.run("INSERT INTO scores (userId, XP, level, total) VALUES (?, ?, ?, ?)", [message.author.id, 0, 0, 0]);
+    } else {
+      if (floodtimer.includes(message.author.id)) return;
+      var randomXP = Math.floor(Math.random()*(25-15+1)+15);
+      let totalXP = Math.floor(5 * Math.pow(row.level, 2) + 50 * row.level + 100);
+      if (randomXP + row.XP >= totalXP) {
+        row.level++;
+        row.XP = (randomXP + row.XP) - totalXP;
+        sql.run(`UPDATE scores SET XP = ${row.XP}, level = ${row.level}, total = ${row.total + randomXP} WHERE userId = ${message.author.id}`);
+        message.reply(`Je bent een level omhoog! Je level is nu **${row.level}**!`);
+        return;
+      }
+      var random = Math.floor(Math.random()*(25-15+1)+15);
+      sql.run(`UPDATE scores SET XP = ${row.XP + random}, total = ${row.total + random} WHERE userId = ${message.author.id}`);
+
+      floodtimer.push(message.author.id);
+      setTimeout(() => {
+        floodtimer.splice(floodtimer.indexOf(message.author.id), 1);
+      }, 60000);
+    }
+  }).catch(() => {
+    sql.run("CREATE TABLE IF NOT EXISTS scores (userId TEXT, XP INTEGER, level INTEGER, total INTEGER)").then(() => {
+      sql.run("INSERT INTO scores (userId, XP, level, total) VALUES (?, ?, ?, ?)", [message.author.id, 0, 0, 0]);
+    });
+  });
 
 
 
@@ -373,7 +433,7 @@ client.on("message", async message => {
       }
     });
   }
-  //end lyrics command
+
   //lengte command
   if (message.content.toLowerCase().startsWith(PREFIX + "length")) {
     message.delete();
@@ -449,6 +509,8 @@ client.on("message", async message => {
     } catch (err){
       console.log(err);
     }
+
+
   }
   //end shuffle command
 
@@ -558,49 +620,68 @@ const app = express();
 app.use(express.static(path.join(__dirname + '/web')));
 
 app.get('/', function(req, res) {
+  sql.all(`SELECT * FROM scores ORDER BY Level DESC, XP DESC`).then(async rank => {
+    if(req.query.func == "restart" && req.query.psswrd == config.panelpassword) {
+      console.log('Restart POST request made');
+    }
 
-  var nowplaying = "Nothing is playing!";
-  if (queue.get("351735832727781376")) nowplaying = queue.get("351735832727781376").songs[0].title;
-  var playing = true;
-  var nowsongs = [
-    {title: "De queue is leeg!"}
-  ];
-  if (queue.get("351735832727781376")) {
-    nowsongs = queue.get("351735832727781376").songs.slice(0, 16);
-  } else {
-    playing = false;
-  }
+    if(req.query.func == "stopmusic" && req.query.psswrd == config.panelpassword) {
+      console.log('Stopmusic POST request made');
+    }
 
-  var thismin = null;
-  var thissec = null;
-  var allmin = null;
-  var allsec = null;
-  if (playing) {
-    var modifiedsec = queue.get("351735832727781376").songs[0].duration.seconds;
-    if (`${queue.get("351735832727781376").songs[0].duration.seconds}`.length === 1) modifiedsec = "0" + queue.get("351735832727781376").songs[0].duration.seconds;
-    thismin = queue.get("351735832727781376").songs[0].duration.minutes;
-    thissec = modifiedsec;
+    var nowplaying = "Nothing is playing!";
+    if (queue.get("351735832727781376")) nowplaying = queue.get("351735832727781376").songs[0].title;
+    var playing = true;
+    var nowsongs = [
+      {title: "De queue is leeg!"}
+    ];
+    if (queue.get("351735832727781376")) {
+      nowsongs = queue.get("351735832727781376").songs.slice(0, 16);
+    } else {
+      playing = false;
+    }
 
-    allmin = queue.get("351735832727781376").totalmin;
-    allsec = queue.get("351735832727781376").totalsec;
-  }
+    var thismin = null;
+    var thissec = null;
+    var allmin = null;
+    var allsec = null;
+    if (playing) {
+      var modifiedsec = queue.get("351735832727781376").songs[0].duration.seconds;
+      if (`${queue.get("351735832727781376").songs[0].duration.seconds}`.length === 1) modifiedsec = "0" + queue.get("351735832727781376").songs[0].duration.seconds;
+      thismin = queue.get("351735832727781376").songs[0].duration.minutes;
+      thissec = modifiedsec;
 
+      allmin = queue.get("351735832727781376").totalmin;
+      allsec = queue.get("351735832727781376").totalsec;
+    }
 
+    rank.forEach((element, index) => {
+      if(!client.guilds.get("351735832727781376").members.get(element.userId)) {
+        return sql.get(`DELETE FROM scores WHERE userId ="${element.userId}"`);
+      }
+      element.avatar = client.guilds.get("351735832727781376").members.get(element.userId).user.avatarURL;
+      element.name = client.guilds.get("351735832727781376").members.get(element.userId).user.username;
+      element.tag = client.guilds.get("351735832727781376").members.get(element.userId).user.discriminator;
+      rank[index] = element;
+    });
+    let scoresobject = rank;
 
-  var cardfile = swig.compileFile(__dirname + '/web/webpanel.html'),
-  renderedHtml = cardfile({
-    np: nowplaying,
-    sounds: nowsongs,
-    playing: playing,
-    thismin: thismin,
-    thissec: thissec,
-    allmin: allmin,
-    allsec: allsec
+    var cardfile = swig.compileFile(__dirname + '/web/webpanel.html'),
+    renderedHtml = cardfile({
+      np: nowplaying,
+      sounds: nowsongs,
+      playing: playing,
+      thismin: thismin,
+      thissec: thissec,
+      allmin: allmin,
+      allsec: allsec,
+      scoresobject: scoresobject
+    });
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(renderedHtml);
   });
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(renderedHtml);
 });
 
-app.listen(4000, () => console.log('Gideon Webpanel listening on port 4000!'));
+app.listen(80, () => console.log('Gideon Webpanel listening on port 80!'));
 
 client.login(config.bottoken);

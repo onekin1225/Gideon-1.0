@@ -3,6 +3,7 @@
 	"geniustoken": "",
 	"yttoken": "",
 	"cbtoken": "",
+	"panelpassword": "",
 	
 	"prefix": ".",
 	"owner": "255009837002260482",
@@ -11,7 +12,9 @@
 	"modrole": "351736915575308288",
 	"helperrole": "360801460386136065",
 	"muterole": "356457101045923841",
+	"countmuterole": "413003819677646848",
 	"humanrolename": "Human",
+	"kgsrolename": "KGS",
 
 	"musicchannelname": "Music",
 

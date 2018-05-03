@@ -26,6 +26,10 @@ module.exports = class dmCommand extends Command {
         });
     }
 
+    hasPermission(msg) {
+        return msg.member.roles.has(config.modrole);
+    }
+
     async run(msg, args) {
         msg.delete();
 

@@ -20,6 +20,10 @@ module.exports = class dmCommand extends Command {
         });
     }
 
+    hasPermission(msg) {
+        return msg.member.roles.has(config.modrole);
+    }
+
     run(msg, args) {
         if(msg.member.roles.has(config.modrole)) {
             const { user } = args;
