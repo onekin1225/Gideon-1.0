@@ -1,16 +1,12 @@
 # Gideon
 ## Info
-This bot was made for my own server - you cannot use it as stand alone!
+This is one of my first javascript projects
+This bot was made for my own server and not compatible with yours!
 You are allowed to use parts of the code if you credit me. Keep in mind some are poorly written since I didn't know what I was doing ;)
 
 *Made in javascript with Discord.JS*
 
-**THIS IS MIT LICENCED. USE RESTRICTED**
-
 ## Features
-```
-Feature list is updated for the version 1.5
-```
 #### General
 * help
 * ping
